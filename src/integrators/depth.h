@@ -45,7 +45,7 @@ public:
     void RequestSamples(Sampler *sampler, Sample *sample, const Scene *scene);
 private:
     // DepthSurfaceIntegrator Private Data
-    int factor;
+    float factor;
 };
 
 

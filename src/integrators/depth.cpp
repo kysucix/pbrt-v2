@@ -29,8 +29,8 @@
 #include "paramset.h"
 
 // DepthSurfaceIntegrator Method Definitions
-DepthSurfaceIntegrator::DepthSurfaceIntegrator(int fa) {
-    factor = fa;
+DepthSurfaceIntegrator::DepthSurfaceIntegrator(float _factor) {
+    factor = _factor;
 }
 
 
@@ -53,7 +53,7 @@ Spectrum DepthSurfaceIntegrator::Li(const Scene *scene,
 
 
 DepthSurfaceIntegrator *CreateDepthSurfaceIntegrator(const ParamSet &params) {
-    int factor = params.FindOneInt("factor", 1);
+    float factor = params.FindOneFloat("factor", 1.0f);
     return new DepthSurfaceIntegrator(factor);
 }
 
