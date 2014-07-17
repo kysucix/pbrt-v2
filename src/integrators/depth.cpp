@@ -1,6 +1,7 @@
 
 /*
     pbrt source code Copyright(c) 1998-2010 Matt Pharr and Greg Humphreys.
+    DepthSurfaceIntegrator Copyright(c) 2014 Silvano Galliani
 
     This file is part of pbrt.
 
