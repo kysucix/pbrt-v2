@@ -1,23 +1,31 @@
 
 /*
-    pbrt source code Copyright(c) 1998-2010 Matt Pharr and Greg Humphreys.
+    pbrt source code Copyright(c) 1998-2012 Matt Pharr and Greg Humphreys.
 
     This file is part of pbrt.
 
-    pbrt is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.  Note that the text contents of
-    the book "Physically Based Rendering" are *not* licensed under the
-    GNU GPL.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
 
-    pbrt is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    - Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    - Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+    IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+    TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+    PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
@@ -39,7 +47,7 @@ struct ParamArray;
 #pragma warning(disable:4018)
 #pragma warning(disable:4996)
 #endif
-#include "pbrtparse.hpp"
+#include "pbrtparse.hh"
 
 struct IncludeInfo {
     string filename;
@@ -60,22 +68,30 @@ void add_string_char(char c) {
 
 
 void include_push(char *filename) {
-    if (includeStack.size() > 32)
-        Severe("Only 32 levels of nested Include allowed in scene files.");
-    IncludeInfo ii;
-    extern string current_file;
-    ii.filename = current_file;
-    ii.bufState = YY_CURRENT_BUFFER;
-    ii.lineNum = line_num;
-    includeStack.push_back(ii);
+    if (includeStack.size() > 32) {
+        Error("Only 32 levels of nested Include allowed in scene files.");
+        exit(1);
+    }
 
-    current_file = AbsolutePath(ResolveFilename(filename));
-    line_num = 1;
+    string new_file = AbsolutePath(ResolveFilename(filename));
 
-    yyin = fopen(current_file.c_str(), "r");
-    if (!yyin)
-        Severe("Unable to open included scene file \"%s\"", current_file.c_str());
-    yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
+    FILE *f = fopen(new_file.c_str(), "r");
+    if (!f)
+        Error("Unable to open included scene file \"%s\"", new_file.c_str());
+    else {
+        extern string current_file;
+        IncludeInfo ii;
+        ii.filename = current_file;
+        ii.bufState = YY_CURRENT_BUFFER;
+        ii.lineNum = line_num;
+        includeStack.push_back(ii);
+
+        yyin = f;
+        current_file = new_file;
+        line_num = 1;
+
+        yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
+    }
 }
 
 

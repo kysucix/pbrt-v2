@@ -1,23 +1,31 @@
 
 /*
-    pbrt source code Copyright(c) 1998-2010 Matt Pharr and Greg Humphreys.
+    pbrt source code Copyright(c) 1998-2012 Matt Pharr and Greg Humphreys.
 
     This file is part of pbrt.
 
-    pbrt is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.  Note that the text contents of
-    the book "Physically Based Rendering" are *not* licensed under the
-    GNU GPL.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
 
-    pbrt is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    - Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    - Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+    IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+    TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+    PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
@@ -36,7 +44,7 @@
 
 static uint32_t hash(char *key, uint32_t len)
 {
-    uint32_t   hash, i;
+    uint32_t hash = 0, i;
     for (hash=0, i=0; i<len; ++i) {
         hash += key[i];
         hash += (hash << 10);
@@ -90,7 +98,8 @@ void SamplerRendererTask::Run() {
                     // random shading based on shape id...
                     uint32_t ids[2] = { isects[i].shapeId, isects[i].primitiveId };
                     uint32_t h = hash((char *)ids, sizeof(ids));
-                    float rgb[3] = { (h & 0xff), (h >> 8) & 0xff, (h >> 16) & 0xff };
+                    float rgb[3] = { float(h & 0xff), float((h >> 8) & 0xff),
+                                     float((h >> 16) & 0xff) };
                     Ls[i] = Spectrum::FromRGB(rgb);
                     Ls[i] /= 255.f;
                 }
@@ -113,12 +122,12 @@ void SamplerRendererTask::Run() {
                 Ls[i] = Spectrum(0.f);
             }
             else if (Ls[i].y() < -1e-5) {
-                Error("Negative luminance value, %f, returned"
+                Error("Negative luminance value, %f, returned "
                       "for image sample.  Setting to black.", Ls[i].y());
                 Ls[i] = Spectrum(0.f);
             }
             else if (isinf(Ls[i].y())) {
-                Error("Infinite luminance value returned"
+                Error("Infinite luminance value returned "
                       "for image sample.  Setting to black.");
                 Ls[i] = Spectrum(0.f);
             }

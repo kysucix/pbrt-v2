@@ -1,23 +1,31 @@
 
 /*
-    pbrt source code Copyright(c) 1998-2010 Matt Pharr and Greg Humphreys.
+    pbrt source code Copyright(c) 1998-2012 Matt Pharr and Greg Humphreys.
 
     This file is part of pbrt.
 
-    pbrt is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.  Note that the text contents of
-    the book "Physically Based Rendering" are *not* licensed under the
-    GNU GPL.
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
 
-    pbrt is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    - Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    - Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+    IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+    TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+    PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  */
 
@@ -64,7 +72,7 @@ float PerspectiveCamera::GenerateRay(const CameraSample &sample,
         ray->o = Point(lensU, lensV, 0.f);
         ray->d = Normalize(Pfocus - ray->o);
     }
-    ray->time = Lerp(sample.time, shutterOpen, shutterClose);
+    ray->time = sample.time;
     CameraToWorld(*ray, ray);
     return 1.f;
 }
@@ -96,10 +104,34 @@ float PerspectiveCamera::GenerateRayDifferential(const CameraSample &sample,
     }
 
     // Compute offset rays for _PerspectiveCamera_ ray differentials
-    ray->rxOrigin = ray->ryOrigin = ray->o;
-    ray->rxDirection = Normalize(Vector(Pcamera) + dxCamera);
-    ray->ryDirection = Normalize(Vector(Pcamera) + dyCamera);
-    ray->time = Lerp(sample.time, shutterOpen, shutterClose);
+    if (lensRadius > 0.) {
+        // Compute _PerspectiveCamera_ ray differentials with defocus blur
+
+        // Sample point on lens
+        float lensU, lensV;
+        ConcentricSampleDisk(sample.lensU, sample.lensV, &lensU, &lensV);
+        lensU *= lensRadius;
+        lensV *= lensRadius;
+
+        Vector dx = Normalize(Vector(Pcamera + dxCamera));
+        float ft = focalDistance / dx.z;
+        Point pFocus = Point(0,0,0) + (ft * dx);
+        ray->rxOrigin = Point(lensU, lensV, 0.f);
+        ray->rxDirection = Normalize(pFocus - ray->rxOrigin);
+
+        Vector dy = Normalize(Vector(Pcamera + dyCamera));
+        ft = focalDistance / dy.z;
+        pFocus = Point(0,0,0) + (ft * dy);
+        ray->ryOrigin = Point(lensU, lensV, 0.f);
+        ray->ryDirection = Normalize(pFocus - ray->ryOrigin);
+    }
+    else {
+        ray->rxOrigin = ray->ryOrigin = ray->o;
+        ray->rxDirection = Normalize(Vector(Pcamera) + dxCamera);
+        ray->ryDirection = Normalize(Vector(Pcamera) + dyCamera);
+    }
+
+    ray->time = sample.time;
     CameraToWorld(*ray, ray);
     ray->hasDifferentials = true;
     return 1.f;

@@ -5,6 +5,7 @@
 # Build folders:
 src/objs
 src/bin
+src/build
 
 # Common renderer output file:
 pbrt.exr
@@ -14,3 +15,15 @@ pbrt.exr
 #src/core/pbrtparse.cpp
 #src/core/pbrtparse.hh
 src/core/pbrtparse.output
+
+# Visual studio files
+src/pbrt.vs*/*.sdf
+src/pbrt.vs*/*.opensdf
+src/pbrt.vs*/ipch
+src/pbrt.vs*/*.suo
+src/pbrt.vs*/*.user
+
+# VS Build folders
+tmp/
+bin/
+lib/
