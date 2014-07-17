@@ -1,6 +1,7 @@
 
 /*
     pbrt source code Copyright(c) 1998-2010 Matt Pharr and Greg Humphreys.
+    DepthSurfaceIntegrator Copyright(c) 2014 Silvano Galliani
 
     This file is part of pbrt.
 
@@ -37,7 +38,7 @@
 class DepthSurfaceIntegrator : public SurfaceIntegrator {
 public:
     // DepthSurfaceIntegrator Public Methods
-    DepthSurfaceIntegrator(int fa);
+    DepthSurfaceIntegrator(float _factor);
     ~DepthSurfaceIntegrator();
     Spectrum Li(const Scene *scene, const Renderer *renderer,
         const RayDifferential &ray, const Intersection &isect,
