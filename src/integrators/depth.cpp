@@ -23,7 +23,6 @@
  */
 
 
-// integrators/directlighting.cpp*
 #include "stdafx.h"
 #include "integrators/depth.h"
 #include "intersection.h"
